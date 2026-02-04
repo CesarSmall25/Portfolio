@@ -7,6 +7,64 @@
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
+/* Work places styles */
+
+.work-places-list {
+	display: flex;
+	flex-direction: column;
+	gap: 25px;
+	align-items: center;
+	width: 100%;
+}
+
+.work-place-item {
+	display: grid;
+	grid-template-columns: 72px 1fr;
+	gap: 20px;
+	align-items: center;
+	max-width: 500px;
+	width: 100%;
+}
+
+.work-place-item .icon {
+	justify-self: center;
+}
+
+.work-place-logo {
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	object-fit: cover;
+	display: block;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.work-place-item h3 {
+	margin: 0;
+}
+
+.work-place-item p {
+	margin: 8px 0 0 0;
+	color: #666;
+}
+
+@media screen and (max-width: 480px) {
+	.work-place-item {
+		grid-template-columns: 56px 1fr;
+		gap: 12px;
+	}
+
+	.work-place-logo {
+		width: 48px;
+		height: 48px;
+	}
+
+	.work-places-list {
+		gap: 18px;
+		align-items: center;
+	}
+}
+
 /* Reset */
 
 /* Based on meyerweb.com/eric/tools/css/reset (v2.0 | 20110126 | License: public domain) */
