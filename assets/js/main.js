@@ -11,6 +11,81 @@
 		$header = $('#header'),
 		$banner = $('#banner');
 
+	var themeKey = 'site-theme',
+		fontScaleKey = 'site-font-scale',
+		defaultTheme = 'light',
+		defaultFontScale = 'normal';
+
+	var updateDisplayMenuState = function() {
+		var theme = $body.attr('data-theme') || defaultTheme;
+		var fontScale = $body.attr('data-font-scale') || defaultFontScale;
+
+		$('[data-theme], [data-font-scale]').removeClass('is-active');
+		$('[data-theme="' + theme + '"]').addClass('is-active');
+		$('[data-font-scale="' + fontScale + '"]').addClass('is-active');
+	};
+
+	var applyTheme = function(theme) {
+		if (!theme)
+			return;
+
+		$body.attr('data-theme', theme);
+		try {
+			localStorage.setItem(themeKey, theme);
+		} catch (e) {
+			// Local storage might be unavailable; ignore gracefully.
+		}
+		updateDisplayMenuState();
+	};
+
+	var applyFontScale = function(fontScale) {
+		if (!fontScale)
+			return;
+
+		$body.attr('data-font-scale', fontScale);
+		try {
+			localStorage.setItem(fontScaleKey, fontScale);
+		} catch (e) {
+			// Local storage might be unavailable; ignore gracefully.
+		}
+		updateDisplayMenuState();
+	};
+
+	var getSystemTheme = function() {
+		if (!window.matchMedia)
+			return defaultTheme;
+		return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+	};
+
+	(function() {
+		var storedTheme = null;
+		var storedFontScale = null;
+		try {
+			storedTheme = localStorage.getItem(themeKey);
+			storedFontScale = localStorage.getItem(fontScaleKey);
+		} catch (e) {
+			storedTheme = null;
+			storedFontScale = null;
+		}
+
+		var initialTheme = storedTheme || getSystemTheme();
+		$body.attr('data-theme', initialTheme);
+		$body.attr('data-font-scale', storedFontScale || defaultFontScale);
+
+		if (!storedTheme && window.matchMedia) {
+			var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+			var handleChange = function(event) {
+				$body.attr('data-theme', event.matches ? 'dark' : 'light');
+				updateDisplayMenuState();
+			};
+
+			if (mediaQuery.addEventListener)
+				mediaQuery.addEventListener('change', handleChange);
+			else if (mediaQuery.addListener)
+				mediaQuery.addListener(handleChange);
+		}
+	})();
+
 	// Breakpoints.
 		breakpoints({
 			wide:      ( '1281px',  '1680px' ),
@@ -27,6 +102,23 @@
 				$body.removeClass('is-preload');
 			}, 100);
 		});
+
+	// Display controls.
+		var $navList = $('#nav > ul');
+		if ($navList.length > 0) {
+			$navList.append(
+				'<li class="display-controls">' +
+					'<a href="#" class="icon solid fa-adjust">Display</a>' +
+					'<ul>' +
+						'<li><a href="#" data-theme="light">Light Mode</a></li>' +
+						'<li><a href="#" data-theme="dark">Dark Mode</a></li>' +
+						'<li><a href="#" data-font-scale="small">Text: Small</a></li>' +
+						'<li><a href="#" data-font-scale="normal">Text: Default</a></li>' +
+						'<li><a href="#" data-font-scale="large">Text: Large</a></li>' +
+					'</ul>' +
+				'</li>'
+			);
+		}
 
 	// Dropdowns.
 		$('#nav > ul').dropotron({
@@ -62,6 +154,31 @@
 					target: $body,
 					visibleClass: 'navPanel-visible'
 				});
+
+			updateDisplayMenuState();
+
+		var findDisplayTarget = function(target) {
+			if (!target)
+				return null;
+			if (target.closest)
+				return target.closest('a[data-theme], a[data-font-scale]');
+			return $(target).closest('a[data-theme], a[data-font-scale]')[0];
+		};
+
+		document.addEventListener('click', function(event) {
+			var link = findDisplayTarget(event.target);
+			if (!link)
+				return;
+
+			event.preventDefault();
+			var theme = link.getAttribute('data-theme');
+			var fontScale = link.getAttribute('data-font-scale');
+
+			if (theme)
+				applyTheme(theme);
+			if (fontScale)
+				applyFontScale(fontScale);
+		}, true);
 
 	// NavPanel submenu toggles (mobile).
 		(function() {
